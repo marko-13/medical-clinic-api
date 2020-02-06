@@ -13,7 +13,6 @@ import com.proj.medicalClinic.security.TokenUtils;
 import com.proj.medicalClinic.service.AppointmentService;
 import com.proj.medicalClinic.service.ClinicService;
 import com.proj.medicalClinic.service.OperationRoomService;
-import com.sun.deploy.util.ArrayUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
