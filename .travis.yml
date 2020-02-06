@@ -1,6 +1,22 @@
 language: java
-jdk: oraclejdk8
+jdk: oraclejdk9
 
+
+services:
+  - postgresql
+
+
+addons:
+  sonarcloud:
+    organization: "isa9psw9tim17"
+    token: $SONAR_TOKEN
+
+
+script:
+  - ./mvnw clean install -DskipTests=false -B
+  - ./mvnw sonar:sonar -Dsonar.projectKey=$PROJECT_KEY -Dsonar.organization=isa9psw9tim17 -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=$SONAR_TOKEN
+
+dist: trusty
 
 #script:
   # the following command line builds the project, runs the tests with coverage and then execute the SonarCloud analysis
