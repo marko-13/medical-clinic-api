@@ -9,9 +9,9 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.proj</groupId>
-	<artifactId>medicalClinic</artifactId>
+	<artifactId>medical-clinic-api</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>medicalClinic</name>
+	<name>medical-clinic-api</name>
 	<description>Project</description>
 
 	<properties>
