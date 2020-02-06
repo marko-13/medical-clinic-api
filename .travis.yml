@@ -1,23 +1,20 @@
 sudo: required
+language: java
 jdk: oraclejdk8
-
-
 before_install:
-  - chmod +x mvnw
-
+- chmod +x mvnw
 
 addons:
   sonarcloud:
-  organization: "isa9psw9tim17"
-  token: 
-    secure: "V1AGh8eYhjqxZdz+kwvQFexrgIvezoyyXUUal+7J42ZG7/ID69sGo9R5BTi+dapBiXq4EWT5AM08OpnSbXI3nATUaHT4sRhcLPU6JRAbq74f8yN+Z5n908VveDlB+Jo8k59HTj33Y4Bk5NMhyFAcmbBG33E3lZMccduYD8GS58rkqF6hzYXqOfWk1mQ16qL5dGLlLM2V7b3Y3H+sdkEmRqnQzW6CTlcun/jBc8Eq6EAZOIeJLKh82GTgFPNj+CwSaG8v+xeOm4gGku/b44mAC+ac8TbZsTYvdhBJdlYGluaHVTZA0mUcS3EeBUTXf9IIGxX65LalXglodVKJbb0wGYvCT9kTWM/atrR0w+0NcFCTp3OFn+vWqserLeyUksN9DpWI1P3RZO7aLIfYV+PT45V84S04Vz6wlDL7rAU525fcnuxCRG0oLyMIrPra/nabfrqdOg1veDJezzQ/KrkSY4txCSUPw+1BwJAbrBSyHuFZVlxKr14QevulBEaDHNkJYCo8KNeYTT6w0CL2OATbbsl24Fm0zs2pBkqUnzFbV8A5JAxD3L1zeQvBesi+hEgsbUNqu/twj66B32lObGaUZySDmr7wmcJHku1dZkxXHlyqSJ0MouE/FsqT8tJhMlGnlaPR99rFaxYZTmJxhWdwd/Bn3QltGEU3d8bIbIZ5rkg="
-
+    organization: "isa9psw9tim17"
+    token:
+      secure: "bvvl7xfCMW3LuRg+tBVg3exkPhn8Zx7KPx23SMqPzT3+AZz4KI6aqcGW84tQlDqPEkHiGX04Uq53ar/Q9z5MB1dRENzdiwv24VeHA00UCvCStkM/2uMSM0WK79YUvkrysOWmH93mRwPT5T5KJRBXoxL+yVsF5P/yq1VC7jZ/wa9ewnTbsMvs9W0m43HU1ghEbFvpaBQLiVC3oNNs1NZToGTuwWGdYFweHvfFLfNeGXc4nboRhSxvwx3rmEvmvUt+yxQgGEc4v3Z+b3DW2HNDpwgMxYveQzmBXpM47G9KZOAehLs1c/DwKxBMi0RTVIC/EOfSDwaaNtdQP71SQgXwgccpEQK+BsC9CaTmsB8nd+dAMavVK8h7J2GmDD9WvsE2HPGvD4x9obRPe+HQ8OuiVKpmdhZzz4PNnzeFSW2uYfMe6SrTwjC+jpx561H0ao+3CNF3HIrZvObsJpEiJnKZTUG7eAwrQct5DyyzfcHC+oX65hIn6MiaRKMV46vmWQo2iYb1JF/VaLkV0XysJxEZLk7ga+gvAmUDDnCwO5K/9uZYAe8UVDxDSV22Fyxo/cn5ztqr+iC2qcdH0Ka6o6JSEchwXmR3bUXN8RD3PWBDFqGfQhdK5/PAFBk/79m2oYLG33tS+QjIaz1xmmVHS1/mOq+Ge0i9/gTHkiQRN+FnmqI=" 
+      
+      
 script:
-  - ./mvnw clean install -DskipTests=false -B
-  - mvn clean verify sonar:sonar -Dsonar.projectKey=marko-13_medical-clinic-api
-
+- "./mvnw clean install -DskipTests=false -B"
+- mvn clean org.jacoco:jacoco-maven-plugin:prepare-agent install sonar:sonar -Dsonar.projectKey=marko-13_medical-clinic-api
 dist: trusty
-
-#script:
-  # the following command line builds the project, runs the tests with coverage and then execute the SonarCloud analysis
-  #- mvn clean org.jacoco:jacoco-maven-plugin:prepare-agent install sonar:sonar
+env:
+  global:
+    secure: bvvl7xfCMW3LuRg+tBVg3exkPhn8Zx7KPx23SMqPzT3+AZz4KI6aqcGW84tQlDqPEkHiGX04Uq53ar/Q9z5MB1dRENzdiwv24VeHA00UCvCStkM/2uMSM0WK79YUvkrysOWmH93mRwPT5T5KJRBXoxL+yVsF5P/yq1VC7jZ/wa9ewnTbsMvs9W0m43HU1ghEbFvpaBQLiVC3oNNs1NZToGTuwWGdYFweHvfFLfNeGXc4nboRhSxvwx3rmEvmvUt+yxQgGEc4v3Z+b3DW2HNDpwgMxYveQzmBXpM47G9KZOAehLs1c/DwKxBMi0RTVIC/EOfSDwaaNtdQP71SQgXwgccpEQK+BsC9CaTmsB8nd+dAMavVK8h7J2GmDD9WvsE2HPGvD4x9obRPe+HQ8OuiVKpmdhZzz4PNnzeFSW2uYfMe6SrTwjC+jpx561H0ao+3CNF3HIrZvObsJpEiJnKZTUG7eAwrQct5DyyzfcHC+oX65hIn6MiaRKMV46vmWQo2iYb1JF/VaLkV0XysJxEZLk7ga+gvAmUDDnCwO5K/9uZYAe8UVDxDSV22Fyxo/cn5ztqr+iC2qcdH0Ka6o6JSEchwXmR3bUXN8RD3PWBDFqGfQhdK5/PAFBk/79m2oYLG33tS+QjIaz1xmmVHS1/mOq+Ge0i9/gTHkiQRN+FnmqI=
