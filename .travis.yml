@@ -22,3 +22,7 @@ script:
 - mvn clean org.jacoco:jacoco-maven-plugin:prepare-agent install sonar:sonar -Dsonar.projectKey=marko-13_medical-clinic-api
 dist: trusty
 
+deploy:
+  provider: heroku
+  api_key: $HEROKU_API_KEY
+  app: floating-lowlands-68738
