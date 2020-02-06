@@ -10,11 +10,12 @@ before_install:
 addons:
   sonarcloud:
   organization: "isa9psw9tim17"
-  token: $SONAR_TOKEN
+  token: 
+    secure: "V1AGh8eYhjqxZdz+kwvQFexrgIvezoyyXUUal+7J42ZG7/ID69sGo9R5BTi+dapBiXq4EWT5AM08OpnSbXI3nATUaHT4sRhcLPU6JRAbq74f8yN+Z5n908VveDlB+Jo8k59HTj33Y4Bk5NMhyFAcmbBG33E3lZMccduYD8GS58rkqF6hzYXqOfWk1mQ16qL5dGLlLM2V7b3Y3H+sdkEmRqnQzW6CTlcun/jBc8Eq6EAZOIeJLKh82GTgFPNj+CwSaG8v+xeOm4gGku/b44mAC+ac8TbZsTYvdhBJdlYGluaHVTZA0mUcS3EeBUTXf9IIGxX65LalXglodVKJbb0wGYvCT9kTWM/atrR0w+0NcFCTp3OFn+vWqserLeyUksN9DpWI1P3RZO7aLIfYV+PT45V84S04Vz6wlDL7rAU525fcnuxCRG0oLyMIrPra/nabfrqdOg1veDJezzQ/KrkSY4txCSUPw+1BwJAbrBSyHuFZVlxKr14QevulBEaDHNkJYCo8KNeYTT6w0CL2OATbbsl24Fm0zs2pBkqUnzFbV8A5JAxD3L1zeQvBesi+hEgsbUNqu/twj66B32lObGaUZySDmr7wmcJHku1dZkxXHlyqSJ0MouE/FsqT8tJhMlGnlaPR99rFaxYZTmJxhWdwd/Bn3QltGEU3d8bIbIZ5rkg="
 
 script:
   - ./mvnw clean install -DskipTests=false -B
-  - ./mvnw sonar:sonar -Dsonar.projectKey=$PROJECT_KEY -Dsonar.organization=isa9psw9tim17 -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=$SONAR_TOKEN
+  - mvn clean org.jacoco:jacoco-maven-plugin:prepare-agent install sonar:sonar -Dsonar.projectKey=marko-13_medical-clinic-api
 
 dist: trusty
 
