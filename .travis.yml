@@ -14,7 +14,7 @@ addons:
 
 script:
   - ./mvnw clean install -DskipTests=false -B
-  - mvn clean verify sonar:sonar -Pcoverage -Dsonar.projectKey=marko-13_medical-clinic-api
+  - mvn clean verify sonar:sonar -Dsonar.projectKey=marko-13_medical-clinic-api
 
 dist: trusty
 
