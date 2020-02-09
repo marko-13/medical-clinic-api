@@ -22,7 +22,7 @@ target/
 *.iws
 *.iml
 *.ipr
-*.properties
+#*.properties
 *.sql
 
 ### NetBeans ###
