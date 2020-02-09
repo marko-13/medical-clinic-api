@@ -45,7 +45,7 @@ public class Doctor extends AppUser{
 	)
 	private List<Operation> operations;
 
-	@ManyToMany(fetch = FetchType.LAZY)
+	@ManyToMany
 	@JoinTable(
 			name = "Doctors_Services",
 			joinColumns = {@JoinColumn(name = "doctor_id")},

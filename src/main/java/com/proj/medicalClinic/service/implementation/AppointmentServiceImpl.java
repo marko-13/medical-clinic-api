@@ -12,18 +12,21 @@ import com.proj.medicalClinic.service.AppointmentService;
 import com.proj.medicalClinic.service.EmailService;
 import com.proj.medicalClinic.service.OperationRoomService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.persistence.Query;
+import javax.print.Doc;
 
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.*;
 
+import javax.transaction.Transactional;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -33,7 +36,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
-@org.springframework.transaction.annotation.Transactional(propagation = Propagation.REQUIRES_NEW)
 public class AppointmentServiceImpl implements AppointmentService {
 
     @Autowired
@@ -69,27 +71,16 @@ public class AppointmentServiceImpl implements AppointmentService {
     @Autowired
     private ClinicRepository clinicRepository;
 
-    @Autowired
-    private AdminClinicRepository adminClinicRepository;
-
-    @PersistenceContext
-    EntityManager em;
-
 
     @Override
     public List<AppointmentDTO> getAllByOperationRoom(Long id){
-        System.out.println("Prosao ovaj 1");
         List<Appointment> appointments = appointmentRepository.findAllByOperationRoomId(id)
                 .orElse(null);
-        System.out.println("Prosao ovaj 2");
-        if (appointments == null) {
-            System.out.println("Prosao ovaj 3");
-        }
+
         List<AppointmentDTO> appointmentDTOS = new ArrayList<>();
 
         if(appointments != null){
             for(Appointment a : appointments){
-                System.out.println("Prosao ovaj 4");
                 appointmentDTOS.add(new AppointmentDTO(a));
             }
         }
@@ -105,13 +96,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         List<AppointmentHistoryDTO> appointmentDTOS = new ArrayList<>();
 
         for(Appointment a : appointments){
-            if(a instanceof Examination) {
-                if (((Examination) a).getConfirmed() == 2) {
-                    appointmentDTOS.add(new AppointmentHistoryDTO(a));
-                }
-            } else {
-                appointmentDTOS.add(new AppointmentHistoryDTO(a));
-            }
+            appointmentDTOS.add(new AppointmentHistoryDTO(a));
         }
 
         return appointmentDTOS;
@@ -130,7 +115,6 @@ public class AppointmentServiceImpl implements AppointmentService {
         List<Appointment> appointments = appointmentRepository.findAllAppointmentRequests(clinicId).orElseThrow(NotExistsException::new);
         List<AppointmentDTO> appointmentDTOS = new ArrayList<>();
         for (Appointment a : appointments) {
-            System.out.println("Id appointmenta " + a.getId());
             appointmentDTOS.add(new AppointmentDTO(a));
         }
 
@@ -146,11 +130,12 @@ public class AppointmentServiceImpl implements AppointmentService {
             if (!(user instanceof Doctor || user instanceof Nurse)) {
                 throw new NotValidParamsException("Only medical staff members can see this data");
             }
-
+            
             if (user instanceof Nurse) {
                 System.out.println(email);
                 System.out.println(user.getId());
                 List<Appointment> appointments = appointmentRepository.findAllByNurse(user.getId());
+
                 for(Appointment ap: appointments) {
                     System.out.println(ap.getId());
                 }
@@ -161,7 +146,7 @@ public class AppointmentServiceImpl implements AppointmentService {
 
                 return appointmentHistoryDTO;
             } else {
-                List<Examination> examinations = examinationRepository.findAllByDoctorsContainingAndConfirmed((Doctor) user, 2);
+                List<Examination> examinations = examinationRepository.findAllByDoctorsContaining((Doctor) user);
 
                 List<AppointmentHistoryDTO> appointmentHistoryDTO = examinations.stream().map(
                         s -> new AppointmentHistoryDTO(s)
@@ -194,20 +179,15 @@ public class AppointmentServiceImpl implements AppointmentService {
     @Override
     public AppointmentDTO addRoom(Long appointmentId, Long roomId) {
 
-        System.out.println("Prosao0 " + appointmentId);
         Appointment appointment = appointmentRepository.findById(appointmentId).orElseThrow(NotExistsException::new);
-        System.out.println("Prosao " + appointment.getId());
         OperationRoom operationRoom = operationRoomRepository.findById(roomId).orElseThrow(NotExistsException::new);
-        System.out.println("Prosao1 " + operationRoom.getId());
+
         appointment.setOperationRoom(operationRoom);
 
         //POSALJI MAIL PACIJENTU
         Patient patient = appointment.getPatient();
-
-
-        Long app = appointmentId;
         try {
-            this.emailService.sendNotificaitionAsync(patient, "<a href=\"http://localhost:3000/confirm_exam?"+"val=2&app="+app+"\">Confirm</a> <br></br> <a href=\"http://localhost:3000/confirm_exam?"+"val=3&app=" + app + "\""+">Deny</a>", "Appointment confirmation");
+            this.emailService.sendNotificaitionAsync(patient, "<a href=''>Confirm</a> <br></br> <a href=''>Deny</a>", "Appointment confirmation");
         }catch (Exception e){
             e.printStackTrace();
         }
@@ -235,128 +215,6 @@ public class AppointmentServiceImpl implements AppointmentService {
 
         appointmentRepository.save(appointment);
         return new AppointmentDTO(appointment);
-    }
-
-    @Override
-    @Transactional
-    public void addOperationRoom(Long appointmentId, Long roomId, List<Long> doctorsId) {
-        try {
-            Appointment appointment = appointmentRepository.findById(appointmentId).orElseThrow(() -> new NotExistsException("Appointment not found"));
-            OperationRoom operationRoom = operationRoomRepository.findById(roomId).orElseThrow(() -> new NotExistsException("Room not found"));
-
-            appointment.setOperationRoom(operationRoom);
-
-            //POSALJI MAIL PACIJENTU
-            Patient patient = appointment.getPatient();
-            try {
-                this.emailService.sendNotificaitionAsync(patient, "Appointment has been set. <br></br> Date: " + appointment.getDate() + "<br></br>Room: " + appointment.getOperationRoom().getName() + " " +appointment.getOperationRoom().getNumber(), "Appointment confirmation");
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
-            //POSALJI MAIL DOKTORU
-            if (appointment instanceof Operation) {
-
-                Operation op = (Operation) appointment;
-                List<Doctor> doctors = new ArrayList<>();
-
-                for (Long doctorId : doctorsId) {
-                    Doctor dr = doctorRepository.findById(doctorId).orElse(null);
-                    String queryMR = "INSERT INTO doctors_operations (doctor_id, operation_id) VALUES (?1, ?2)";
-                    Query queryMREm = em.createNativeQuery(queryMR)
-                            .setParameter(1, dr.getId())
-                            .setParameter(2, appointmentId);
-                    em.joinTransaction();
-                    queryMREm.executeUpdate();
-                    doctors.add(dr);
-                }
-
-                ((Operation) appointment).setDoctors(doctors);
-
-                if (doctors != null || !doctors.isEmpty()) {
-
-                    for (Doctor dr : doctors) {
-                        try {
-                            this.emailService.sendNotificaitionAsync(dr,
-                                    "Appointment has been set. <br></br> Date: " + appointment.getDate() + "<br></br> Patient: " + patient.getName() + " " + patient.getLastName() + "<br></br>Room: " + appointment.getOperationRoom().getName() + " " +appointment.getOperationRoom().getNumber(),
-                                    "Appointment confirmation");
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    }
-                } else {
-                    throw new NotValidParamsException("There isn't any doctor");
-                }
-            } else {
-                throw new NotValidParamsException("This is an examination, not an operation.");
-            }
-
-            appointmentRepository.save(appointment);
-            System.out.println("Sacuvao appointment");
-        } catch (NotExistsException | NotValidParamsException e) {
-            throw e;
-        }
-    }
-
-    @Override
-    @Transactional
-    public void addChangedOperationRoom(Long appointmentId, Long roomId, List<Long> doctorsId, Long start) {
-        try {
-            Appointment appointment = appointmentRepository.findById(appointmentId).orElseThrow(() -> new NotExistsException("Appointment not found"));
-            OperationRoom operationRoom = operationRoomRepository.findById(roomId).orElseThrow(() -> new NotExistsException("Room not found"));
-            Date selectedDate = new Date(start);
-
-            appointment.setOperationRoom(operationRoom);
-            appointment.setDate(selectedDate);
-
-            //POSALJI MAIL PACIJENTU
-            Patient patient = appointment.getPatient();
-            try {
-                this.emailService.sendNotificaitionAsync(patient, "Appointment has been set. <br></br> Date: " + appointment.getDate() + "<br></br>Room: " + appointment.getOperationRoom().getName() + " " +appointment.getOperationRoom().getNumber(), "Appointment confirmation");
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
-            //POSALJI MAIL DOKTORU
-            if (appointment instanceof Operation) {
-
-                Operation op = (Operation) appointment;
-                List<Doctor> doctors = new ArrayList<>();
-
-                for (Long doctorId : doctorsId) {
-                    Doctor dr = doctorRepository.findById(doctorId).orElse(null);
-                    String queryMR = "INSERT INTO doctors_operations (doctor_id, operation_id) VALUES (?1, ?2)";
-                    Query queryMREm = em.createNativeQuery(queryMR)
-                            .setParameter(1, dr.getId())
-                            .setParameter(2, appointmentId);
-                    em.joinTransaction();
-                    queryMREm.executeUpdate();
-                    doctors.add(dr);
-                }
-
-                if (doctors != null || !doctors.isEmpty()) {
-
-                    for (Doctor dr : doctors) {
-                        try {
-                            this.emailService.sendNotificaitionAsync(dr,
-                                    "Appointment has been set. <br></br> Date: " + appointment.getDate() + "<br></br> Patient: " + patient.getName() + " " + patient.getLastName() + "<br></br>Room: " + appointment.getOperationRoom().getName() + " " +appointment.getOperationRoom().getNumber(),
-                                    "Appointment confirmation");
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    }
-                } else {
-                    throw new NotValidParamsException("There isn't any doctor");
-                }
-            } else {
-                throw new NotValidParamsException("This is an examination, not an operation.");
-            }
-
-            appointmentRepository.save(appointment);
-            System.out.println("Sacuvao appointment");
-        } catch (NotExistsException | NotValidParamsException e) {
-            throw e;
-        }
     }
 
     @Override
@@ -400,11 +258,8 @@ public class AppointmentServiceImpl implements AppointmentService {
 
             //SALJI MAIL PATIENTU
             Patient patient = appointment.getPatient();
-
-
-            Long app = appointmentRequestDTO.getAppId();
             try {
-                this.emailService.sendNotificaitionAsync(patient, "<a href=\"http://localhost:3000/confirm_exam?"+"val=2&app="+app+"\">Confirm</a> <br></br> <a href=\"http://localhost:3000/confirm_exam?"+"val=3&app=" + app + "\""+">Deny</a>", "Appointment confirmation");
+                this.emailService.sendNotificaitionAsync(patient, "<a href=''>Confirm</a> <br></br> <a href=''>Deny</a>", "Appointment confirmation");
             }catch (Exception e){
                 e.printStackTrace();
             }
@@ -471,10 +326,9 @@ public class AppointmentServiceImpl implements AppointmentService {
                         appointmentRepository.saveNative(operationRoom.getId(), unnaprovedApp.getId());
 
                         //SALJI MAIL PACIJENTU
-                        Long app = ex.getId();
 
                         try {
-                            this.emailService.sendNotificaitionAsync(patient, "<a href=\"http://localhost:3000/confirm_exam?"+"val=2&app="+app+"\">Confirm</a> <br></br> <a href=\"http://localhost:3000/confirm_exam?"+"val=3&app=" + app + "\""+">Deny</a>", "Appointment confirmation");
+                            this.emailService.sendNotificaitionAsync(patient, "<a href=''>Confirm</a> <br></br> <a href=''>Deny</a>", "Appointment confirmation");
                         }catch (Exception e){
                             e.printStackTrace();
                         }
@@ -501,58 +355,8 @@ public class AppointmentServiceImpl implements AppointmentService {
                 }
 
 
-            } else if (unnaprovedApp instanceof Operation){
-                Patient patient = unnaprovedApp.getPatient();
-                Operation op = (Operation) unnaprovedApp;
-
-                List<OperationRoomDTO> availableRooms = operationRoomService.getAllAvailable(op.getDate().getTime());
-                if(availableRooms.isEmpty() || availableRooms == null){
-                    continue;
-                }
-
-                for(OperationRoomDTO or : availableRooms){
-                    if(or.getClinicId() == op.getClinic().getId()){
-                        //ZAUZMI SOBU
-
-                        OperationRoom operationRoom = operationRoomRepository.findById(or.getRoomId()).orElse(null);
-                        if(operationRoom == null){
-                            return;
-                        }
-
-                        unnaprovedApp.setOperationRoom(operationRoom);
-                        appointmentRepository.saveNative(operationRoom.getId(), unnaprovedApp.getId());
-
-                        //SALJI MAIL PACIJENTU
-
-                        try {
-                            this.emailService.sendNotificaitionAsync(patient, "Appointment has been set. <br></br> Date: " + unnaprovedApp.getDate() + "<br></br>Room: " + unnaprovedApp.getOperationRoom().getName() + " " + unnaprovedApp.getOperationRoom().getNumber(), "Appointment confirmation");
-                        }catch (Exception e){
-                            e.printStackTrace();
-                        }
-
-                        //SALJI MAIL DOKTORU
-
-                        List<Doctor> doctors = doctorRepository.findAllByOperations(op);
-
-                        if (doctors != null || !doctors.isEmpty()) {
-
-                            for (Doctor dr : doctors) {
-                                try {
-                                    this.emailService.sendNotificaitionAsync(dr,
-                                            "Appointment has been set. <br></br> Date: " + unnaprovedApp.getDate() + "<br></br> Patient: " + patient.getName() + " " + patient.getLastName() + "<br></br>Room: " + unnaprovedApp.getOperationRoom().getName() + " " + unnaprovedApp.getOperationRoom().getNumber(),
-                                            "Appointment confirmation");
-                                } catch (Exception e) {
-                                    e.printStackTrace();
-                                }
-                            }
-                        } else {
-                            throw new NotValidParamsException("There isn't any doctor");
-                        }
-
-                        break;
-                    }
-                }
-
+            }else {
+                //AUTOMACKI ZAUZMI SOBE ZA OPERACIJE
             }
         }
     }
@@ -578,8 +382,6 @@ public class AppointmentServiceImpl implements AppointmentService {
             doctor.getExaminations().add(ex);
             appointment.setOperationRoom(operationRoom);
 
-
-            Long app = ex.getId();
             //POSALJI MAIL DOKTORU
             try {
                 this.emailService.sendNotificaitionAsync(doctor,
@@ -591,7 +393,7 @@ public class AppointmentServiceImpl implements AppointmentService {
 
             //POSALJI MAIL PACIJENTU
             try {
-                this.emailService.sendNotificaitionAsync(patient, "<a href=\"http://localhost:3000/confirm_exam?"+"val=2&app="+app+"\">Confirm</a> <br></br> <a href=\"http://localhost:3000/confirm_exam?"+"val=3&app=" + app + "\""+">Deny</a>", "Appointment confirmation");
+                this.emailService.sendNotificaitionAsync(patient, "<a href=''>Confirm</a> <br></br> <a href=''>Deny</a>", "Appointment confirmation");
             }catch (Exception e){
                 e.printStackTrace();
             }
@@ -649,58 +451,6 @@ public class AppointmentServiceImpl implements AppointmentService {
 
         com.proj.medicalClinic.model.Service my_service = serviceRepository.findById(service_id).orElseThrow(NotExistsException::new);
         Doctor my_doc = doctorRepository.findById(doc_id).orElseThrow(NotExistsException::new);
-
-        List<AppUser> nurses = appUserRepository.findByUserRole(RoleType.NURSE).orElse(null);
-        Nurse assignedNurse = null;
-
-        for(AppUser ap: nurses) {
-            Nurse nr = (Nurse) ap;
-            if (nr.getClinic().getId() == my_doc.getClinic().getId()) {
-                boolean allowNurse = true;
-                List<Appointment> appointmentsNurse = appointmentRepository.findAllByNurse(nr.getId());
-                List<Leave> leavesNurse = leaveRepository.findAllByNurse(nr);
-
-                for (Appointment o : appointmentsNurse) {
-                    if ((o.getDate().getTime() < my_date) && ((o.getDate().getTime() + o.getDuration() * millis_in_min) > my_date)) {
-                        System.out.println("UDJE 1");
-                        allowNurse = false;
-                        break;
-                    }
-
-                    if ((o.getDate().getTime() < (my_date + 30 * millis_in_min)) && ((o.getDate().getTime() + o.getDuration() * millis_in_min) > (my_date + 30 * millis_in_min))) {
-                        System.out.println("UDJE 2");
-                        allowNurse = false;
-                        break;
-                    }
-                }
-
-                if (allowNurse) {
-                    for (Leave l : leavesNurse) {
-                        if ((l.getDateStart().getTime() < my_date) && (l.getDateEnd().getTime() > my_date)) {
-                            System.out.println("UDJE 3");
-                            allowNurse = false;
-                            break;
-                        }
-                        if ((l.getDateStart().getTime() < (my_date + 30 * millis_in_min)) && (l.getDateEnd().getTime() > (my_date + 30 * millis_in_min))) {
-                            System.out.println("UDJE 4");
-                            allowNurse = false;
-                            break;
-                        }
-                    }
-                    if(allowNurse) {
-                        System.out.println("Asisgned nurse " + nr.getId() + " " + nr.getEmail());
-                        assignedNurse = nr;
-                        break;
-                    }
-                }
-            }
-        }
-
-        if (assignedNurse == null) {
-            assignedNurse = (Nurse) nurses.get(-1);
-            System.out.println("Assigned last nurse " + assignedNurse.getId() + " " + assignedNurse.getEmail());
-        }
-
         // check shifts
 //        if(my_doc.getShift() == 1){
 //            if(hours >= 8){
@@ -720,7 +470,7 @@ public class AppointmentServiceImpl implements AppointmentService {
 
 
         List<Operation> operations = operationRepository.findAllByDoctorsContaining(my_doc);
-        List<Examination> examinations = examinationRepository.findAllByDoctorsContainingAndConfirmed(my_doc, 2);
+        List<Examination> examinations = examinationRepository.findAllByDoctorsContaining(my_doc);
         List<Leave> leaves = leaveRepository.findAllByDoctor(my_doc);
 
         for(Operation o : operations){
@@ -792,7 +542,6 @@ public class AppointmentServiceImpl implements AppointmentService {
 
 
     @Override
-    @Transactional
     public boolean addNextForPatient(NetxAppointmentRequestDTO nextAppointment) {
 
         Appointment lastApp = appointmentRepository.findById(nextAppointment.getLastAppointmentId()).orElseThrow(NotExistsException::new);
@@ -825,8 +574,6 @@ public class AppointmentServiceImpl implements AppointmentService {
 
         if(isAvailable){
             if(nextAppointment.getAppointmentType().equals("Examination")){
-                Examination ex = (Examination) lastApp;
-                Nurse nurse = ex.getNurse();
 
                 Examination newExamination = new Examination();
                 newExamination.setDate(selectedDate);
@@ -837,35 +584,14 @@ public class AppointmentServiceImpl implements AppointmentService {
                 newExamination.setFast(false);
                 newExamination.setPatient(lastApp.getPatient());
                 newExamination.setHeld(false);
-                newExamination.setNurse(nurse);
+                newExamination.setNurse(null);
                 newExamination.setMReport(null);
-                newExamination.setConfirmed(1);
                 newExamination.setClinic(lastApp.getClinic());
 
                 examinationRepository.save(newExamination);
 
                 doctor.getExaminations().add(newExamination);
                 doctorRepository.save(doctor);
-
-                long clinicId = doctor.getClinic().getId();
-
-                Clinic clinic = clinicRepository.findById(clinicId).orElse(null);
-                if(clinic ==  null){
-                    throw new NotExistsException();
-                }
-
-                List<AdminClinic> adminClinics = adminClinicRepository.findAllByClinic(clinic);
-                if(adminClinics.isEmpty() || adminClinics == null){
-                    throw new NotExistsException();
-                }
-
-                for(AdminClinic ac : adminClinics){
-                    try {
-                        this.emailService.sendNotificaitionAsync(ac,"New appointment request has been created" ,"Appointment request");
-                    }catch (Exception e){
-                        e.printStackTrace();
-                    }
-                }
 
                 return true;
 
@@ -882,39 +608,9 @@ public class AppointmentServiceImpl implements AppointmentService {
                     operation.setFast(false);
                     operation.setHeld(false);
 
-
                     operationRepository.save(operation);
                     doctor.getOperations().add(operation);
                     doctorRepository.save(doctor);
-
-                    String queryMR = "UPDATE appointment SET confirmed = ?1 WHERE id = ?2";
-                    Query queryMREm = em.createNativeQuery(queryMR)
-                            .setParameter(1, 2)
-                            .setParameter(2, operation.getId());
-                    em.joinTransaction();
-                    queryMREm.executeUpdate();
-
-                long clinicId = doctor.getClinic().getId();
-
-                Clinic clinic = clinicRepository.findById(clinicId).orElse(null);
-                if(clinic ==  null){
-                    throw new NotExistsException();
-                }
-
-                List<AdminClinic> adminClinics = adminClinicRepository.findAllByClinic(clinic);
-                if(adminClinics.isEmpty() || adminClinics == null){
-                    throw new NotExistsException();
-                }
-
-                for(AdminClinic ac : adminClinics){
-                    try {
-                        this.emailService.sendNotificaitionAsync(ac,"New appointment request has been created" ,"Appointment request");
-                    }catch (Exception e){
-                        e.printStackTrace();
-                    }
-                }
-
-
                 return true;
             }else{
                 return false;
@@ -930,7 +626,6 @@ public class AppointmentServiceImpl implements AppointmentService {
         Date date = new Date();
         List<Appointment> apps = appointmentRepository.findAllByClinicIdAndDateAfterAndPatientId(clinic_id, date, null);
 
-
         if(apps.isEmpty()){
             throw new NotExistsException();
         }
@@ -939,7 +634,6 @@ public class AppointmentServiceImpl implements AppointmentService {
         for(Appointment a : apps){
             Examination ap = examinationRepository.findById(a.getId()).orElseThrow(NotExistsException::new);
             List<Doctor> docs = doctorRepository.findAllByExaminations(ap);
-            System.out.println(ap.getId());
             ret.add(new FastExamDTO(ap, docs.get(0)));
         }
 
@@ -980,7 +674,5 @@ public class AppointmentServiceImpl implements AppointmentService {
         }catch( Exception e ){
         }
     }
-
-
 
 }

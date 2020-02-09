@@ -1,23 +1,15 @@
 package com.proj.medicalClinic;
 
-import com.proj.medicalClinic.controller.*;
-import com.proj.medicalClinic.repository.AppointmentRepositoryTest;
-import com.proj.medicalClinic.repository.DoctorRepositoryTest;
-import com.proj.medicalClinic.repository.LeaveRepositoryTest;
-import com.proj.medicalClinic.repository.OperationRoomTest;
-
+import com.proj.medicalClinic.controller.AppUserControllerTest;
+import com.proj.medicalClinic.repository.AppUserRepositoryTest;
 import com.proj.medicalClinic.service.AppUserServiceTest;
-import com.proj.medicalClinic.service.AppointmentServiceIntegrationTest;
-import com.proj.medicalClinic.service.AppointmentServiceTest;
-import com.proj.medicalClinic.service.OperationRoomServiceTest;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
-
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 
 @RunWith(Suite.class)
-@Suite.SuiteClasses({AppointmentRepositoryTest.class, DoctorRepositoryTest.class, LeaveRepositoryTest.class, OperationRoomTest.class,
-        AppointmentServiceTest.class, AppUserServiceTest.class, OperationRoomServiceTest.class, AppointmentServiceIntegrationTest.class, AppointmentControllerIntegrationTest.class, DoctorControllerIntegrationTest.class, NurseControllerIntegrationTest.class, AppUserControllerIntegrationTest.class,
-        AppointmentControllerUnitTest.class, AppUserControllerUnitTest.class, DoctorControllerUnitTests.class})
+@Suite.SuiteClasses({AppUserRepositoryTest.class, AppUserServiceTest.class})
 public class TestSuite {
 }
 

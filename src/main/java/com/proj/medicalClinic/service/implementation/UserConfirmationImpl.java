@@ -13,8 +13,6 @@ import org.apache.tomcat.util.codec.binary.Base64;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
@@ -24,7 +22,6 @@ import java.util.Arrays;
 import java.util.List;
 
 @Service
-@Transactional(propagation = Propagation.REQUIRES_NEW)
 public class UserConfirmationImpl implements UserConfirmation {
 
     @Autowired
@@ -37,19 +34,14 @@ public class UserConfirmationImpl implements UserConfirmation {
     private PasswordEncoder passwordEncoder;
 
     @Override
-    public List<PatientDTO> getNotApprovedUsers(String email) {
+    public List<PatientDTO> getNotApprovedUsers() {
         try {
-            AppUser user = appUserRepository.findByEmail(email)
-                    .orElseThrow(() -> new NotExistsException("Not allowed to retrieve this data"));
-
             List<AppUser> users = appUserRepository.findAllByEnabledAndRejected(false, false)
-                    .orElse(new ArrayList<>());
+                    .orElseThrow(NotExistsException::new);
 
             List<PatientDTO> patientsDTO = new ArrayList<>();
-            if (!users.isEmpty()) {
-                for (AppUser u : users) {
-                    patientsDTO.add(new PatientDTO((Patient) u));
-                }
+            for (AppUser u : users) {
+                patientsDTO.add(new PatientDTO((Patient) u));
             }
 
             return patientsDTO;
@@ -75,7 +67,7 @@ public class UserConfirmationImpl implements UserConfirmation {
                 Long my_timestamp = System.currentTimeMillis();
                 this.emailService.sendNotificaitionAsync(updated, "\n\nYour account has been approved.<br></br><a href=\"http://localhost:3000/confirm_auth?id="+pass+"&timestamp="+my_timestamp+ "&broj="+ id+"\">Activate</a>");
 
-            } catch( Exception e ){
+            }catch( Exception e ){
             }
 
             return new PatientDTO(updated);

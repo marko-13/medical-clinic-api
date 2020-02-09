@@ -14,7 +14,7 @@ import java.util.Optional;
 
 @Repository
 public interface ExaminationRepository extends JpaRepository<Examination, Long> {
-    List<Examination> findAllByDoctorsContainingAndConfirmed(Doctor doctor, int confirmed);
+    List<Examination> findAllByDoctorsContaining(Doctor doctor);
 
     Optional<Examination> findById(Long id);
 

@@ -1,8 +1,4 @@
 HELP.md
-Architecture design.png
-Database model.png
-Konfliktne situacije.pdf
-Tim17-PoC.pdf
 target/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**
@@ -22,7 +18,7 @@ target/
 *.iws
 *.iml
 *.ipr
-*.properties
+#*.properties
 *.sql
 
 ### NetBeans ###

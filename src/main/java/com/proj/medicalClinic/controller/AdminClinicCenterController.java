@@ -24,6 +24,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
 @RestController
+@CrossOrigin(origins = "http://localhost:3000")
 @RequestMapping(value = "/admin-clinic-center", produces = MediaType.APPLICATION_JSON_VALUE)
 public class AdminClinicCenterController {
     @Autowired
@@ -53,17 +54,10 @@ public class AdminClinicCenterController {
     @RequestMapping(value = "/approve")
     @PreAuthorize("hasAuthority('ADMINCLINICALCENTER')")
     public ResponseEntity<?> getNotApprovedUsers() {
-        try {
-            String email = this.tokenUtils.getUsernameFromToken(this.tokenUtils.getToken(this.httpServletRequest));
-            return new ResponseEntity<>(this.userConfirmation.getNotApprovedUsers(email), HttpStatus.OK);
-        } catch(NotValidParamsException e){
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.FORBIDDEN);
-        } catch (Exception e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
-        }
+        return new ResponseEntity<>(this.userConfirmation.getNotApprovedUsers(), HttpStatus.OK);
     }
 
-    @RequestMapping(value = "/approve-user/{id}")
+    @RequestMapping(value = "/approve/{id}")
     @PreAuthorize("hasAuthority('ADMINCLINICALCENTER')")
     public ResponseEntity<?> approvePatients(@PathVariable Long id) {
         try {
@@ -75,7 +69,7 @@ public class AdminClinicCenterController {
     }
 
 
-    @RequestMapping(value = "/deny-user/{id}")
+    @RequestMapping(value = "/deny/{id}")
     @PreAuthorize("hasAuthority('ADMINCLINICALCENTER')")
     public ResponseEntity<?> denyPatients(@PathVariable Long id, @RequestBody String msg) {
         try {

@@ -6,7 +6,7 @@ import java.util.List;
 
 public interface UserConfirmation {
 
-    List<PatientDTO> getNotApprovedUsers(String email);
+    List<PatientDTO> getNotApprovedUsers();
 
     PatientDTO approvePatient(Long id);
 

@@ -9,6 +9,4 @@ public interface PatientService {
     List<PatientDTO> getAll();
 
     int approve_email(int encoded_email, Long timestamp, Long id);
-
-    void confirm_exam(int broj, Long app_id);
 }
