@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AdminClinicDTO {
-
+// ajdeee skontaj
     private String name;
     private String lastName;
     private String email;
