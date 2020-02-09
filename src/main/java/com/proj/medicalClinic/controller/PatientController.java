@@ -2,6 +2,7 @@ package com.proj.medicalClinic.controller;
 
 import com.proj.medicalClinic.dto.*;
 import com.proj.medicalClinic.exception.NotExistsException;
+import com.proj.medicalClinic.exception.NotValidParamsException;
 import com.proj.medicalClinic.security.TokenUtils;
 import com.proj.medicalClinic.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,9 +14,9 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ExecutionException;
 
 @RestController
-@CrossOrigin(origins = "http://localhost:3000")
 @RequestMapping(value = "/patient", produces = MediaType.APPLICATION_JSON_VALUE)
 public class PatientController {
 
@@ -101,6 +102,24 @@ public class PatientController {
             }
         }catch (Exception e) {
             return new ResponseEntity<>("Poruka", HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    // When activation link confirmed or denied is clicked for examination
+    @RequestMapping(value = "confirmexam/{broj}/{app_id}", method = RequestMethod.POST)
+    public ResponseEntity<?> confirm_exam(@PathVariable int broj, @PathVariable Long app_id){
+        try{
+            System.out.println("UDJE U TRY");
+            patientService.confirm_exam(broj, app_id);
+            System.out.println("DODJE DO KRAJA CONFIRMOVANJA EXAMA");
+            return new ResponseEntity<>("Ok", HttpStatus.OK);
+        }catch(NotExistsException e){
+            System.out.println("NOT EXISTS EXCEPTION BACI");
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+        }
+        catch (NotValidParamsException e){
+            System.out.println("NOT VALID PARAMS EXCEPTION BACI");
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.FORBIDDEN);
         }
     }
 }

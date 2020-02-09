@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.servlet.http.HttpServletRequest;
 
 @RestController
-@CrossOrigin(origins = "http://localhost:3000")
 @RequestMapping(value = "/medical-reports", produces = MediaType.APPLICATION_JSON_VALUE)
 public class MedicalReportController {
     @Autowired

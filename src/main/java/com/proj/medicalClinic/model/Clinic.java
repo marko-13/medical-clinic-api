@@ -71,4 +71,7 @@ public class Clinic {
 
     @OneToMany(mappedBy = "clinic", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<AdminClinic> adminsClinic;
+
+    @Version
+    private int version;
 }

@@ -13,12 +13,15 @@ import com.proj.medicalClinic.repository.ExaminationRepository;
 import com.proj.medicalClinic.service.MedicalStaffService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional(propagation = Propagation.REQUIRES_NEW)
 public class MedicalStaffServiceImpl implements MedicalStaffService {
 
     @Autowired

@@ -29,7 +29,6 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@CrossOrigin(origins = "http://localhost:3000")
 @RequestMapping(value = "/prescriptions", produces = MediaType.APPLICATION_JSON_VALUE)
 public class PrescriptionController {
     @Autowired

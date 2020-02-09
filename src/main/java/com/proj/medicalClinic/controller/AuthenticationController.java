@@ -36,7 +36,6 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 //Kontroler zaduzen za autentifikaciju korisnika
 @RestController
-@CrossOrigin(origins = "http://localhost:3000")
 @RequestMapping(value = "/users", produces = MediaType.APPLICATION_JSON_VALUE)
 public class AuthenticationController {
 
@@ -101,7 +100,6 @@ public class AuthenticationController {
             AppUser user = this.userService.save(appUser);
             HttpHeaders headers = new HttpHeaders();
 
-            //Sta ovo tacno radi?
             headers.setLocation(ucBuilder.path("/api/user/{userId}").buildAndExpand(user.getId()).toUri());
             return new ResponseEntity<>(HttpStatus.CREATED);
         }
@@ -128,8 +126,6 @@ public class AuthenticationController {
     }
 
     @RequestMapping(value = "/change-password", method = RequestMethod.POST)
-    @CrossOrigin(origins = "http://localhost:3000")
-    //hasrole ??
     public ResponseEntity<?> changePassword(@RequestBody PasswordChanger passwordChanger) {
         userDetailsService.changePassword(passwordChanger.oldPassword, passwordChanger.newPassword);
 

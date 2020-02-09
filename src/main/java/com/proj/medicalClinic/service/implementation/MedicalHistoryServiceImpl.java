@@ -11,6 +11,8 @@ import com.proj.medicalClinic.repository.*;
 import com.proj.medicalClinic.service.MedicalHistoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,6 +20,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional(propagation = Propagation.REQUIRES_NEW)
 public class MedicalHistoryServiceImpl implements MedicalHistoryService {
 
     @Autowired
@@ -69,7 +72,7 @@ public class MedicalHistoryServiceImpl implements MedicalHistoryService {
                     Doctor dr = (Doctor) user;
                     for (Appointment ap : appointments) {
 
-                        if (ap instanceof Examination) {
+                        if (ap instanceof Examination && ((Examination) ap).getConfirmed() == 2) {
                             Examination ex = (Examination) ap;
                             List<Doctor> doctors = doctorRepository.findAllByExaminations(ex);
 
@@ -97,7 +100,7 @@ public class MedicalHistoryServiceImpl implements MedicalHistoryService {
 
                     for (Appointment ap : appointments) {
 
-                        if (ap instanceof Examination) {
+                        if (ap instanceof Examination && ((Examination) ap).getConfirmed() == 2) {
                             Examination ex = (Examination) ap;
                             if (ex.getNurse() != null) {
                                 if (ex.getNurse().getId() == nr.getId()) {

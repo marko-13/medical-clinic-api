@@ -21,7 +21,6 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
 @RestController
-@CrossOrigin(origins = "http://localhost:3000")
 @RequestMapping(value = "/doctor", produces = MediaType.APPLICATION_JSON_VALUE)
 public class DoctorController {
 
@@ -82,6 +81,20 @@ public class DoctorController {
             return new ResponseEntity<>(doctorDTOS, HttpStatus.OK);
         }catch (NotExistsException e){
             return new ResponseEntity<>("Nije nasao doktore", HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @RequestMapping(value = "/getCurrent/{appointmentId}", method = RequestMethod.POST)
+    public ResponseEntity<?> getCurrent(@PathVariable Long appointmentId){
+        try {
+            DoctorDTO doctorDTO = doctorService.getCurrent(appointmentId);
+            return new ResponseEntity<>(doctorDTO, HttpStatus.OK);
+        } catch (NotValidParamsException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.FORBIDDEN);
+        } catch (NotExistsException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
         }
     }
 

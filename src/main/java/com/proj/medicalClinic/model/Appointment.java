@@ -52,4 +52,7 @@ public class Appointment {
 
 //    @ManyToMany(mappedBy = "operations", fetch = FetchType.LAZY)
 //    private List<Doctor> doctors;
+
+    @Version
+    private Integer version;
 }

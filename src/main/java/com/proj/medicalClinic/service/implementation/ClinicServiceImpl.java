@@ -13,6 +13,8 @@ import com.sun.xml.bind.v2.TODO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.print.Doc;
 import java.text.DateFormat;
@@ -25,6 +27,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional(propagation = Propagation.REQUIRES_NEW)
 public class ClinicServiceImpl implements ClinicService {
 
     @Autowired
@@ -121,6 +124,8 @@ public class ClinicServiceImpl implements ClinicService {
     // and where are appointemnts available for selected date
     @Override
     public List<ClinicServiceDTO> findCorresponding(Long service_id, Long appointment_date, double min_clinic_score) {
+        System.out.println("SLEDECI SLUCAJ\n\n\n\n");
+
         Long eight_hrs_in_miliseconds = 28800000L;
         Long one_hour_in_millis = 3600000L; //ONE HOUR
 
@@ -225,34 +230,42 @@ public class ClinicServiceImpl implements ClinicService {
         // ako doktor iz operacije nije u doktorima klinike izbaci
         for(Examination ex : examinations){
             for(Doctor d : ex.getDoctors()){
+                System.out.println("DOKTOR NA TOM PREGLEDU: " + d.getId());
                 // ako taj pregled nema sve doktore iz zeljene klinike izbaci
-                if(!(my_doctors.contains(d))){
+                if(!(my_doctors1.contains(d))){
                     examinations.remove(ex);
                     System.out.println("Nasao pregled za zeljeni dan koji nema doktore iz klinike: " + ex.getId());
                     continue;
                 }
 ////                appointment_vremena.put(ex.getId(), ex.getDate().getTime());
-                Map<Long, Double> temp_map = new HashMap<>();
-                temp_map.putAll(my_map.get(d));
-                temp_map.put(ex.getDate().getTime(), ex.getDuration());
-                my_map.replace(d, temp_map);
+                // dodao if okolo
+                if(my_doctors.contains(d)) {
+                    Map<Long, Double> temp_map = new HashMap<>();
+                    temp_map.putAll(my_map.get(d));
+                    temp_map.put(ex.getDate().getTime(), ex.getDuration());
+                    my_map.replace(d, temp_map);
+                }
             }
             System.out.println("NADJEN OK PREGLED: " + ex.getId());
         }
         for(Operation ex : operations){
             for(Doctor d : ex.getDoctors()){
+                System.out.println("DOKTOR NA TOJ OPERACIJI: " + d.getId());
                 // ako taj pregled nema sve doktore iz zeljene klinike izbac
-                if(!(my_doctors.contains(d))){
+                if(!(my_doctors1.contains(d))){
                     operations.remove(ex);
                     System.out.println("Nasao operaciju za zeljeni dan koja nema doktore iz klinike: " + ex.getId());
                     continue;
                 }
 ////                appointment_vremena.put(ex.getId(), ex.getDate().getTime());
-                Map<Long, Double> temp_map = new HashMap<>();
-                temp_map.putAll(my_map.get(d));
-                // mnozim sa 60000 jer je u minutama a treba prebaciti u milices
-                temp_map.put(ex.getDate().getTime(), ex.getDuration() * 60000);
-                my_map.replace(d, temp_map);
+                // dodao if okolo
+                if(my_doctors.contains(d)) {
+                    Map<Long, Double> temp_map = new HashMap<>();
+                    temp_map.putAll(my_map.get(d));
+                    // mnozim sa 60000 jer je u minutama a treba prebaciti u milices
+                    temp_map.put(ex.getDate().getTime(), ex.getDuration() * 60000);
+                    my_map.replace(d, temp_map);
+                }
             }
             System.out.println("NADJEN OK PREGLED: " + ex.getId());
         }
@@ -281,7 +294,6 @@ public class ClinicServiceImpl implements ClinicService {
                 continue;
             }
 
-
             // SORTIRAJ SVE OPERACIJE I PREGLEDE PO VREMENU. REZ SORTIRANJA JE U TEMP
             //ali sortiraj samo ako ih ima vise od dva
             Map<Long, Double> temp = new HashMap<Long, Double>();
@@ -303,14 +315,19 @@ public class ClinicServiceImpl implements ClinicService {
                     temp.put(aa.getKey(), aa.getValue());
                 }
             }
-            else{
+            if(list_of_appointments.size() == 1){
+
                 temp = list_of_appointments;
+                System.out.println("Recnik sa kljucem vreme pregleda i vrednoscu trajanje" + temp);
+            }
+            else{
+
             }
             // -----------------------------------------------------
             my_map.replace(d, temp);
 
 
-
+//OK DO OVDE
 
             //E SAD ZA SVAKI TEMP PROVERI DA LI IMA DOVOLJNO VELIKA RUPA DA FITUJE PREGLED
             // prolazi kroz sve
@@ -326,19 +343,24 @@ public class ClinicServiceImpl implements ClinicService {
             trajanja_lista.addAll(trajanja);
 
 
-            for(int i=0; i<vreme_poc_lista.size()-1; i++){
-                if(i == 0){
-                    if(vreme_poc_lista.get(i) - start_dates.getTime() > one_hour_in_millis){
-                        ok_docs.add(d);
-                        break;
+            // ako ima samo jedan pregled sigurno ce biti mesta
+            if(vreme_poc_lista.size() > 1) {
+                for (int i = 0; i < vreme_poc_lista.size() - 1; i++) {
+                    if (i == 0) {
+                        if (vreme_poc_lista.get(i) - start_dates.getTime() > one_hour_in_millis) {
+                            ok_docs.add(d);
+                            break;
+                        }
+                    } else {
+                        if (vreme_poc_lista.get(i + 1) - (vreme_poc_lista.get(i) + trajanja_lista.get(i)) > one_hour_in_millis) {
+                            ok_docs.add(d);
+                            break;
+                        }
                     }
                 }
-                else {
-                    if(vreme_poc_lista.get(i + 1) - (vreme_poc_lista.get(i) + trajanja_lista.get(i)) > one_hour_in_millis){
-                        ok_docs.add(d);
-                        break;
-                    }
-                }
+            }
+            else{
+                ok_docs.add(d);
             }
         }
 

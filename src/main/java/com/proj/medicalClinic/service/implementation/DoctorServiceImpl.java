@@ -18,6 +18,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 
 import javax.servlet.http.HttpServletRequest;
@@ -31,6 +33,7 @@ import java.time.LocalTime;
 import java.util.*;
 
 @Service
+@Transactional(propagation = Propagation.REQUIRES_NEW)
 public class DoctorServiceImpl implements DoctorService {
 
     @Autowired
@@ -151,6 +154,8 @@ public class DoctorServiceImpl implements DoctorService {
     // returns list of doctors that cen perform given examination for given date and work in given clinic
     @Override
     public List<DoctorDTO> getAllAvailableForExam(Long clinc_id, Long selected_date, Long service_id) {
+        System.out.println("SLEDECI SLUCAJ \n\n\n\n");
+
         // kalendar
         Long eight_hrs_in_miliseconds = 28800000L;
         Long one_hour_in_millis = 3600000L; //ONE HOUR
@@ -181,6 +186,7 @@ public class DoctorServiceImpl implements DoctorService {
         //--------------------------------------------------------------------------------------------------------------
 
         com.proj.medicalClinic.model.Service my_service = serviceRepository.findById(service_id).orElseThrow(NotExistsException::new);
+        System.out.println("Id trazenog servicea: " + my_service.getId());
 
         Clinic my_clinc = clinicRepository.getOne(clinc_id);
 
@@ -247,33 +253,38 @@ public class DoctorServiceImpl implements DoctorService {
         for(Examination ex : examinations){
             for(Doctor d : ex.getDoctors()){
                 // ako taj pregled nema sve doktore iz zeljene klinike izbaci
-                if(!(my_doctors.contains(d))){
+                if(!(my_docs_clinic.contains(d))){
                     examinations.remove(ex);
                     System.out.println("Nasao pregled za zeljeni dan koji nema doktore iz klinike: " + ex.getId());
                     continue;
                 }
 ////                appointment_vremena.put(ex.getId(), ex.getDate().getTime());
-                Map<Long, Double> temp_map = new HashMap<>();
-                temp_map.putAll(my_map.get(d));
-                temp_map.put(ex.getDate().getTime(), ex.getDuration());
-                my_map.replace(d, temp_map);
+                // dodao if okolo
+                if(my_doctors.contains(d)) {
+                    Map<Long, Double> temp_map = new HashMap<>();
+                    temp_map.putAll(my_map.get(d));
+                    temp_map.put(ex.getDate().getTime(), ex.getDuration());
+                    my_map.replace(d, temp_map);
+                }
             }
             System.out.println("NADJEN OK PREGLED: " + ex.getId());
         }
         for(Operation ex : operations){
             for(Doctor d : ex.getDoctors()){
                 // ako taj pregled nema sve doktore iz zeljene klinike izbac
-                if(!(my_doctors.contains(d))){
+                if(!(my_docs_clinic.contains(d))){
                     operations.remove(ex);
                     System.out.println("Nasao operaciju za zeljeni dan koja nema doktore iz klinike: " + ex.getId());
                     continue;
                 }
 ////                appointment_vremena.put(ex.getId(), ex.getDate().getTime());
-                Map<Long, Double> temp_map = new HashMap<>();
-                temp_map.putAll(my_map.get(d));
-                // mnozim sa 60000 jer je u minutama a treba prebaciti u milices
-                temp_map.put(ex.getDate().getTime(), ex.getDuration() * 60000);
-                my_map.replace(d, temp_map);
+                if(my_doctors.contains(d)) {
+                    Map<Long, Double> temp_map = new HashMap<>();
+                    temp_map.putAll(my_map.get(d));
+                    // mnozim sa 60000 jer je u minutama a treba prebaciti u milices
+                    temp_map.put(ex.getDate().getTime(), ex.getDuration() * 60000);
+                    my_map.replace(d, temp_map);
+                }
             }
             System.out.println("NADJEN OK PREGLED: " + ex.getId());
         }
@@ -347,19 +358,23 @@ public class DoctorServiceImpl implements DoctorService {
             trajanja_lista.addAll(trajanja);
 
 
-            for(int i=0; i<vreme_poc_lista.size()-1; i++){
-                if(i == 0){
-                    if(vreme_poc_lista.get(i) - start_dates.getTime() > one_hour_in_millis){
-                        ok_docs.add(d);
-                        break;
+            if(vreme_poc_lista.size() > 1) {
+                for (int i = 0; i < vreme_poc_lista.size() - 1; i++) {
+                    if (i == 0) {
+                        if (vreme_poc_lista.get(i) - start_dates.getTime() > one_hour_in_millis) {
+                            ok_docs.add(d);
+                            break;
+                        }
+                    } else {
+                        if (vreme_poc_lista.get(i + 1) - (vreme_poc_lista.get(i) + trajanja_lista.get(i)) > one_hour_in_millis) {
+                            ok_docs.add(d);
+                            break;
+                        }
                     }
                 }
-                else {
-                    if(vreme_poc_lista.get(i + 1) - (vreme_poc_lista.get(i) + trajanja_lista.get(i)) > one_hour_in_millis){
-                        ok_docs.add(d);
-                        break;
-                    }
-                }
+            }
+            else{
+                ok_docs.add(d);
             }
         }
 
@@ -421,6 +436,8 @@ public class DoctorServiceImpl implements DoctorService {
 
     @Override
     public List<DoctorDTO> getAllAvailableForDate(AppointmentRequestDTO appointmentRequestDTO) {
+
+        System.out.println("ALOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO");
 
         Appointment appointment;
         Clinic clinic;
@@ -489,6 +506,29 @@ public class DoctorServiceImpl implements DoctorService {
             }
         }
         return availableDoctors;
+    }
+
+    @Override
+    public DoctorDTO getCurrent(Long appointmentId) {
+        try {
+            DoctorDTO doctorDTO = new DoctorDTO();
+
+            if (appointmentId != 0) {
+                Appointment appointment = appointmentRepository.findById(appointmentId).orElseThrow(() -> new NotExistsException("Operation not found"));
+                if (appointment instanceof Operation) {
+                    Operation op = (Operation) appointment;
+                    doctorDTO = new DoctorDTO(doctorRepository.findByOperations(op));
+                } else {
+                    Examination ex = (Examination) appointment;
+                    doctorDTO = new DoctorDTO(doctorRepository.findByExaminations(ex));
+                }
+                return doctorDTO;
+            } else {
+                return doctorDTO;
+            }
+        } catch (NotExistsException | NotValidParamsException e) {
+            throw e;
+        }
     }
 
 }

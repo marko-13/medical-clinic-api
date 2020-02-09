@@ -16,6 +16,10 @@ import java.util.List;
 @DiscriminatorValue("EX")
 public class Examination extends Appointment {
 
+    // ako je confirmed = 1, onda je default state, ako je = 2 onda je potvrdjen, ako je = 3 onda je odbijen
+    @Column(name = "confirmed", unique = false, nullable = true)
+    private int confirmed;
+
     @Column(name = "held", unique = false, nullable = false)
     private boolean held;
 

@@ -12,6 +12,8 @@ import com.proj.medicalClinic.repository.PrescriptionRepository;
 import com.proj.medicalClinic.service.PrescriptionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.validation.constraints.Null;
 import java.util.ArrayList;
@@ -20,6 +22,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Service
+@Transactional(propagation = Propagation.REQUIRES_NEW)
 public class PrescriptionServiceImpl implements PrescriptionService {
     @Autowired
     private PrescriptionRepository prescriptionRepository;
@@ -66,7 +69,7 @@ public class PrescriptionServiceImpl implements PrescriptionService {
             }
 
             List<Prescription> prescriptions = prescriptionRepository.findAllByNurseAndApprovedIsFalse(nurse)
-                    .orElseThrow(NotExistsException::new);
+                    .orElse(new ArrayList<>());
 
             List<PrescriptionDTO> prescriptionsDTO = new ArrayList<>();
             for (Prescription p : prescriptions) {

@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@CrossOrigin(origins = "http://localhost:3000")
 @RequestMapping(value = "/leave", produces = MediaType.APPLICATION_JSON_VALUE)
 public class LeaveController {
 

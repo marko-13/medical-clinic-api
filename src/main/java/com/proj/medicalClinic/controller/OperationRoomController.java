@@ -17,7 +17,6 @@ import java.util.Date;
 import java.util.List;
 
 @RestController
-@CrossOrigin(origins = "http://localhost:3000")
 @RequestMapping(value = "/operationRoom", produces = MediaType.APPLICATION_JSON_VALUE)
 public class OperationRoomController {
 

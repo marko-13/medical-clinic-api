@@ -83,7 +83,6 @@ public class ServiceController {
     }
 
     @RequestMapping(value = "/getAllFromDoctor/{doctorId}", method = RequestMethod.POST)
-    @PreAuthorize("hasAuthority('ADMINCLINIC')")
     public ResponseEntity<?> getAllFromDoctor(@PathVariable long doctorId){
         System.out.println(doctorId);
         try {

@@ -9,6 +9,7 @@ import com.proj.medicalClinic.service.StartExamService;
 import org.apache.commons.lang3.time.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -18,6 +19,7 @@ import java.util.Date;
 import java.util.List;
 
 @Service
+@org.springframework.transaction.annotation.Transactional(propagation = Propagation.REQUIRES_NEW)
 public class StartExamServiceImpl implements StartExamService {
 
     @Autowired
@@ -121,6 +123,12 @@ public class StartExamServiceImpl implements StartExamService {
             }
 
             //MedicalHistory medicalHistory = medicalHistoryRepository.findById(startExamDTO.getMedicalHistoryId()).orElseThrow(() -> new NotExistsException("Not able to find medical history"));
+            System.out.println("OVDE ISPISUJE NESTO");
+            System.out.println(startExamDTO.getWeight());
+            System.out.println(startExamDTO.getHeight());
+            System.out.println(startExamDTO.getDioptre());
+            System.out.println(startExamDTO.getAllergies());
+            System.out.println(startExamDTO.getMedicalHistoryId());
             String queryMH = "update medical_history set weight=?1, height=?2, dioptre=?3, allergy=?4 where patient_id=?5";
             Query queryEMMH = em.createNativeQuery(queryMH)
                     .setParameter(1, startExamDTO.getWeight())

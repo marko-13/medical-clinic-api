@@ -9,12 +9,15 @@ import com.proj.medicalClinic.repository.DrugsRepository;
 import com.proj.medicalClinic.service.DrugsRegistryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional(propagation = Propagation.REQUIRES_NEW)
 public class DrugsRegistryServiceImpl implements DrugsRegistryService {
 
     @Autowired

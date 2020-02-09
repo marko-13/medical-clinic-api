@@ -2,6 +2,7 @@ package com.proj.medicalClinic.repository;
 
 import com.proj.medicalClinic.model.Doctor;
 import com.proj.medicalClinic.model.Leave;
+import com.proj.medicalClinic.model.Nurse;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -30,4 +31,6 @@ public interface LeaveRepository extends JpaRepository<Leave, Long> {
 
     // valjda ce raditi
     List<Leave> findAllByDoctor(Doctor d);
+
+    List<Leave> findAllByNurse(Nurse n);
 }

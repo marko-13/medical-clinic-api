@@ -22,6 +22,9 @@ public class OperationRoom {
     @Column(name = "id", unique = true, updatable = false, nullable = false)
     private Long id;
 
+    @Version
+    private Integer version;
+
     @Column(name = "name", nullable = false)
     private String name;
 

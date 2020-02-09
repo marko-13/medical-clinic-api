@@ -14,6 +14,8 @@ import com.proj.medicalClinic.service.EmailService;
 import com.proj.medicalClinic.service.LeaveService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.print.Doc;
 import java.util.ArrayList;
@@ -21,6 +23,7 @@ import java.util.Collection;
 import java.util.List;
 
 @Service
+@Transactional(propagation = Propagation.REQUIRES_NEW)
 public class LeaveServiceImpl implements LeaveService {
 
     @Autowired

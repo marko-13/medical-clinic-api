@@ -26,6 +26,9 @@ public class AppUser implements UserDetails {
 	@Column(name = "id", unique = true, updatable = false, nullable = false)
 	private Long id;
 
+	@Version
+	private Integer version;
+
 	@Column(name = "user_role", unique = false, updatable = false, nullable = false)
 	@Enumerated(EnumType.STRING)
 	private RoleType userRole;

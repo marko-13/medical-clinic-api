@@ -13,10 +13,13 @@ import com.proj.medicalClinic.security.TokenUtils;
 import com.proj.medicalClinic.service.AppointmentService;
 import com.proj.medicalClinic.service.ClinicService;
 import com.proj.medicalClinic.service.OperationRoomService;
+import com.sun.deploy.util.ArrayUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.print.Doc;
 import javax.servlet.http.HttpServletRequest;
@@ -24,6 +27,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 @Service
+@Transactional(propagation = Propagation.REQUIRES_NEW)
 public class OperationRoomServiceImpl implements OperationRoomService {
 
     @Autowired
@@ -104,7 +108,15 @@ public class OperationRoomServiceImpl implements OperationRoomService {
             if(appointmentDTOS.isEmpty()){
                 operationRoom.setNumber(operationRoomRequest.getNumber());
                 operationRoom.setName(operationRoomRequest.getName());
+
                 operationRoomRepository.save(operationRoom);
+
+                try{
+
+                    Thread.sleep(30000);
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
                 return new OperationRoomDTO(operationRoom);
             }
 
