@@ -4,16 +4,17 @@ import com.proj.medicalClinic.dto.AppointmentDTO;
 import com.proj.medicalClinic.dto.OperationRoomDTO;
 import com.proj.medicalClinic.exception.NotExistsException;
 import com.proj.medicalClinic.exception.ResourceConflictException;
-import com.proj.medicalClinic.model.*;
+import com.proj.medicalClinic.model.AdminClinic;
+import com.proj.medicalClinic.model.Appointment;
+import com.proj.medicalClinic.model.Clinic;
+import com.proj.medicalClinic.model.OperationRoom;
 import com.proj.medicalClinic.repository.AppUserRepository;
 import com.proj.medicalClinic.repository.AppointmentRepository;
 import com.proj.medicalClinic.repository.ClinicRepository;
 import com.proj.medicalClinic.repository.OperationRoomRepository;
 import com.proj.medicalClinic.security.TokenUtils;
 import com.proj.medicalClinic.service.AppointmentService;
-import com.proj.medicalClinic.service.ClinicService;
 import com.proj.medicalClinic.service.OperationRoomService;
-import com.sun.deploy.util.ArrayUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -21,10 +22,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.print.Doc;
 import javax.servlet.http.HttpServletRequest;
-import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
 
 @Service
 @Transactional(propagation = Propagation.REQUIRES_NEW)
