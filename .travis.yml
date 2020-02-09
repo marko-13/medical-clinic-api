@@ -10,16 +10,16 @@ install:
   - curl -Ls -o codacy-coverage-reporter-assembly.jar "https://dl.bintray.com/codacy/Binaries/${LATEST_VERSION}/codacy-coverage-reporter-assembly.jar"
   - export MAVEN_OPTS=-Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
 
-addons:
-  sonarcloud:
-    organization: "isa9psw9tim17"
-    token:
-      
+#addons:
+  #sonarcloud:
+    #organization: "isa9psw9tim17"
+   # token:
+     # secure: "BNiZSnzYQIxLfDiIQUuE6267NpNTWgX1O8WjrICO/Y+HmB/eViX4MIQbyjJJQ/U+EkYx3KBmWruHmKp3W+Lwdgf4JmigyuZBn9tiUqE6YvcNGaCup15OLPXnp1uvFt/v8SKQkcaBFypZNcnGeOGF+G3nTpWC5r0yya4TbNRBsqvdad2CUZ7SUWtJxJ4U8upiSSEBK0139AuRjFyMOvAq11NTwJelBjc1Ymy1+Xp4mOkgzcBYe3A/yXM+bprey8Xf9Zof1JFYHgcI2JejqMmnWA9fpSZUJnnNpkFvYM9+AFMpwieoHCPOBCGb43Vs8azziEOzw8QqUOYjSjNn+mEc9oTwjq5terqhjqBP9Pow6LrYFIW1MGBc3oEcITPvaXPjN8cPbbx6iQgHJLXKRpW1mCNWt5YQtmMhAnzcqa9dDOvnv1BHYPBKzffuy9Ea90hqc/pSADW++GQBjIX06kIby5xJrlL3V99gy0loNWG2OaUtJfQnp9PMXeLTPwVQCod0oXHlh8AXQvnmGpXh8w2HzfZ4+d3/s8OUNwhq3Pt6JvRTpiB7Ri6glOvOBRjfa/nmJicywxCDPPPEPR2LfBgVhzgXeizpOlqtMkg/dLKfhH75ny5uwny8vGP9RfjSaGvStox7HumfIF/yfo7UbKScDy2kSakiybM6XzYXSt3NLJo="
       
       
 script:
 - "./mvnw clean install -DskipTests=false -B"
-- mvn clean org.jacoco:jacoco-maven-plugin:prepare-agent install sonar:sonar -Dsonar.projectKey=marko-13_medical-clinic-api
+#- mvn clean org.jacoco:jacoco-maven-plugin:prepare-agent install sonar:sonar -Dsonar.projectKey=marko-13_medical-clinic-api
 dist: trusty
 
 deploy:
